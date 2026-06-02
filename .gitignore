@@ -1,0 +1,26 @@
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# Generated locally (datasets, checkpoints, run outputs)
+data/
+checkpoints/
+results/
+
+# Model / array artifacts
+*.pt
+*.pth
+*.bin
+*.safetensors
+*.npz
+
+# Cluster / job logs
+logs/
+*.out
+*.err
+
+# Secrets & local env  (never commit HF tokens!)
+.env
+.venv/
+venv/
+*.token

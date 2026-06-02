@@ -1,0 +1,13 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite the paper."
+title: "Installing and Obstructing Heuristics: Learning Dynamics in Nim"
+# TODO(camera-ready): de-anonymize authors before public release if desired.
+authors:
+  - name: "Anonymous authors"
+preferred-citation:
+  type: conference-paper
+  title: "Installing and Obstructing Heuristics: Learning Dynamics in Nim"
+  year: 2026
+  collection-title: "ICML 2026 Workshop (camera-ready)"
+  authors:
+    - name: "Anonymous authors"
