@@ -12,8 +12,7 @@ rule — and how those heuristics can be **installed** (via transfer / curriculu
 > full rule.
 
 <p align="center">
-  <img src="figures/finetune_purenum_eval_accuracy.png" width="48%" alt="eval accuracy curves">
-  <img src="figures/probe_heatmaps_3models.png" width="48%" alt="probe heatmaps">
+  <img src="figures/finetune_purenum_eval_accuracy.png" width="70%" alt="Finetuning eval accuracy across model sizes and MR: models plateau at mod-k coset heuristics before reaching the full modular rule">
 </p>
 
 This repository is a **cleaned camera-ready snapshot**: only the scripts that produce the
