@@ -1,53 +1,53 @@
-# `transfer/` — Section 4.2: Heuristic transplanting (prefinetuning)
+# `transfer/` — Section 4.2: Heuristic transplanting
 
-> **⚠️ LEO — your code goes here.**
->
-> This directory is a **placeholder** for the Section 4.2 *coset-heuristic transfer*
-> experiments ("installing / accelerating heuristics via prefinetuning"). That code
-> lives in Leo's working tree, not in the snapshot this repo was cut from. Drop the
-> cleaned scripts into this folder and fill in the two stubs below.
+Code for the §4.2 *coset-heuristic transfer* experiments (Figures 4–7, Table 1):
+prefinetuning a model on data whose modulus is a **factor** of a downstream Nim modulus
+**installs** (or accelerates) a coset heuristic in the downstream task.
 
-## What this covers (paper §4.2, Figures 4–7, Table 1)
-
-A model is **prefinetuned** on data whose modulus is a *factor* of the downstream
-Nim modulus, then finetuned on the downstream Nim task. Two prefinetuning sources:
-
-1. **Explicit modular reduction** (`Mod_k`) — prompts like *"what is 10 mod 4?"*,
-   generated algorithmically over inputs in `[0, 10000]` (9000 train / 1000 eval),
-   trained ~5000 steps to 100% accuracy.
-2. **Nim prefinetune** (`Nim_k`) — initialize from a Nim checkpoint for a source
-   task `MR = k` (the first checkpoint that hits 100% eval accuracy).
-
-The downstream finetune itself is **already in this repo** —
-[`../finetune_single_mr.py`](../finetune_single_mr.py) (150-epoch / fixed-step
-variant). The only missing pieces are (a) generating the modular-reduction data and
-(b) running the prefinetune stage that produces the checkpoint the downstream run
-starts from.
-
-## Where each piece goes
-
-| File | What Leo should put here |
-|------|--------------------------|
-| `prefinetune_modular_reduction.py` | Generate `Mod_k` data + train the `Mod_k` prefinetune. Push checkpoint to `{HF_ORG}/mod{k}_prefinetune_...`. |
-| `prefinetune_nim.py` | Take a converged `Nim_k` checkpoint and expose it as the prefinetune init for the downstream task. |
-| (data) | If you generate modular-reduction JSONL, write it under `$NIM_DATA_DIR/modreduction/` (see [`../config.py`](../config.py)); do **not** commit the data. |
-
-## How it hooks into the existing pipeline
+## The two-stage pipeline
 
 ```
-prefinetune (Mod_k or Nim_k)  ->  HF checkpoint  ->  finetune_single_mr.py (downstream MR)
-                                                      (pass the prefinetune repo as the base model)
+prefinetune (Mod_k or Nim_k)  ->  base checkpoint  ->  install on downstream Nim task
 ```
 
-Use the shared config so paths/accounts stay parameterized:
+Both stages are the **same ordinary finetune** — it just takes an input dataset and an
+optional starting checkpoint ([`heuristic_installation.py`](heuristic_installation.py)).
+There is no separate "prefinetune" script; you only point the finetune at different data.
 
-```python
-from config import HF_ORG, data_path, output_path   # repo root is on sys.path when run from there
+### 1. Prefinetune (produce the base checkpoint)
+
+- **`Mod_k`** — explicit modular reduction (*"what is n mod k?"*). Generate the data, then
+  finetune base Pythia on it:
+  ```bash
+  python transfer/make_modk_data.py 3                       # -> <DATA_DIR>/mod3_{train,eval}.jsonl
+  python transfer/heuristic_installation.py 1 mod3_prefinetune mod3
+  ```
+- **`Nim_k`** — finetune on the source Nim task `MR = k`; equivalently use
+  [`../finetune_single_mr.py`](../finetune_single_mr.py) and take the first checkpoint that
+  reaches 100% eval accuracy.
+
+### 2. Install (downstream finetune + measure)
+
+```bash
+python transfer/heuristic_installation.py <seed> <run_name> <downstream_mr> <base_model>
+# e.g. install the mod-3 prefinetune into downstream MR=5:
+python transfer/heuristic_installation.py 1 mod3_into_mr5 5 <path-or-hub-id-of-prefinetune>
 ```
 
-## Also from Leo (not code, but referenced)
+It reads `<DATA_DIR>/<dataset>_{train,eval}.jsonl`, finetunes `base_model` for 150 epochs,
+and logs `move_acc`, `mod2_acc`, `mod3_acc` every 250 steps — the curves that show the
+installed coset plateau before (or instead of) the full rule. Checkpoints are written under
+`<NIM_OUTPUT_DIR>/<run_name>_seed<seed>`.
 
-`plot_purenum_curves.py` reads a per-seed metrics CSV that originated from Leo's
-410M seed-42 runs (`icml2026 - 410M.csv`). Put that (and any sibling
-`mr{MR}_410m_seed{SEED}.jsonl`) under `$NIM_RESULTS_DIR/purenum_metrics/` if you
-want that figure to regenerate.
+## Files
+
+| File | Role |
+|------|------|
+| `heuristic_installation.py` | the §4.2 finetune (prefinetune **and** downstream install) |
+| `make_modk_data.py` | reference generator for the `Mod_k` "what is n mod k?" dataset |
+
+## Note
+
+`plot_purenum_curves.py` reads a per-seed metrics CSV (`icml2026 - 410M.csv`) from the
+§4.2 / purenum runs; place it (and any `mr{MR}_410m_seed{SEED}.jsonl`) under
+`<NIM_RESULTS_DIR>/purenum_metrics/` to regenerate that figure.

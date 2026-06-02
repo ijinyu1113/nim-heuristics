@@ -73,10 +73,16 @@ python plot_purenum_curves.py        # Fig. 2-style eval/train accuracy curves
 ```
 
 ### §4.2 — Heuristic transplanting (prefinetuning)  →  see [`transfer/`](transfer/)
-Prefinetuning on a factor modulus (explicit `Mod_k` arithmetic, or `Nim_k`) **installs**
-or **accelerates** coset heuristics downstream. **This code lives in Leo's tree and is not
-in this snapshot** — [`transfer/README.md`](transfer/README.md) documents exactly where it
-plugs in (it reuses `finetune_single_mr.py` for the downstream stage).
+Prefinetuning on a factor modulus (explicit `Mod_k` arithmetic, or `Nim_k`) **installs** or
+**accelerates** coset heuristics downstream. It's an ordinary finetune pointed first at the
+prefinetune dataset, then at the downstream task:
+
+```bash
+python transfer/make_modk_data.py 3                                # "what is n mod k?" data
+python transfer/heuristic_installation.py 1 mod3_prefinetune mod3  # prefinetune (Mod_3)
+python transfer/heuristic_installation.py 1 mod3_into_mr5 5 <base> # install downstream (MR=5)
+```
+See [`transfer/README.md`](transfer/README.md).
 
 ### §4.3 — Curriculum can steer or obstruct heuristics
 Two-phase training (task switch at step 75k, 20% replay). Hard-first vs composite-first.
@@ -140,7 +146,7 @@ datagen_zlabel.py             dataset generation (Nim prompts + cheat-pair manif
 finetune_single_mr*.py        §4.1 baseline / purenum / resume finetuning
 finetune_transition.py        §4.3 curriculum (two-phase) training
 finetune_neutral_generalize.py  App. A neutral-data generalization
-transfer/                     §4.2 heuristic transplanting  ←  LEO'S CODE GOES HERE
+transfer/                     §4.2 heuristic transplanting (prefinetune + install)
 
 dann_meanpool.py              App. C DANN
 contrastive_nim.py            App. D contrastive name invariance
