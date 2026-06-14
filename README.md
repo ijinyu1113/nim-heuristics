@@ -182,13 +182,12 @@ schedule (`warmup_ratio=0.1`) · grad clip `1.0` · batch 64 (32 for contrastive
 
 ## Citation
 
-See [`CITATION.cff`](CITATION.cff). (Authors are anonymized pending camera-ready
-de-anonymization.)
+See [`CITATION.cff`](CITATION.cff).
 
 ```bibtex
 @inproceedings{installing_obstructing_heuristics_2026,
   title     = {Installing and Obstructing Heuristics: Learning Dynamics in Nim},
-  author    = {Anonymous authors},
+  author    = {Leo Villani, Sultan Daniels, Ijin Yu, Anant Sahai},
   booktitle = {ICML 2026 Workshop},
   year      = {2026}
 }
